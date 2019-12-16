@@ -20,13 +20,13 @@ func TestTimeAsULID(t *testing.T) {
 		{
 			"t1",
 			args{t: time.Unix(1576481036, 999999999)},
-			ulid.MustNew(ulid.Timestamp(time.Unix(1576481036, 999999999)), bytes.NewReader([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})),
+			ulid.MustNew(ulid.Timestamp(time.Unix(1576481036, 999999999)), bytes.NewReader([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0})),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := TimeAsULID(tt.args.t); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TimeAsULID() = %v, want %v", got, tt.want)
+			if got := NewTimeULID(tt.args.t); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewTimeULID() = %v, want %v", got, tt.want)
 			}
 		})
 	}
