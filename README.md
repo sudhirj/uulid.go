@@ -18,9 +18,9 @@ This package represents a [16]byte array as a type called UULID, and provides co
 
 Generate an identifier using the methods available
 ```go
-id := NowUULID()
-idWithTime := NewTimedUULID(someTime)
-idWithContent := NewContentUULID(time.Now(), contentReader)
+id := NowUULID() // uses time.Now() with crypto/rand randomness
+idWithTime := NewTimedUULID(someTime) // uses the given time with crypto/rand randomness
+idWithContent := NewContentUULID(time.Now(), contentReader) // uses the SHA1 of the given content to provide "randomness" - the ID will no longer be random, but idempotent to the given time and content.
 ```
 
 Once you've created the IDs, you can either get the ULID or the UUID representations based on your needs
@@ -45,4 +45,4 @@ queryUULID.ULIDString() // 01DW6SF6P70000000000000000
 queryUULID.UUIDString() // 016f0d97-9ac7-0000-0000-000000000000
 ```
 
-These time-only zeroed can be used in `<`, `<=`, `>`, `>=` range queries against your primary key indexes, in same way you might run queries against ISO8601 timestamps.    
+These time-only zeroed IDs can be used in `<`, `<=`, `>`, `>=` and range queries against your primary key indexes, in the same way you might run queries against ISO8601 timestamps.    
