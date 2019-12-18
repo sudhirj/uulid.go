@@ -7,26 +7,33 @@ import (
 	"time"
 )
 
+// UULID represents a 16 byte, or a 128 bit number, which is exactly the same representation as
+// UUIDs and ULIDs. This allows for easy movement between each representation.
 type UULID [16]byte
 
-func (uulid UULID) asUUID() uuid.UUID {
+// AsUUID returns the UULID as a UUID, which will represent it itself in the format `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX`
+func (uulid UULID) AsUUID() uuid.UUID {
 	return uuid.UUID(uulid)
 }
 
-func (uulid UULID) asULID() ulid.ULID {
+// AsULID returns the UULID as a ULID, which will represent it itself as a 26 character Base32 string, an example being `01ARZ3NDEKTSV4RRFFQ69G5FAV`
+func (uulid UULID) AsULID() ulid.ULID {
 	return ulid.ULID(uulid)
 }
 
+// ULIDString returns the Base32 ULID representation, which occupies 26 characters, like `01ARZ3NDEKTSV4RRFFQ69G5FAV`
 func (uulid UULID) ULIDString() string {
-	return uulid.asULID().String()
+	return uulid.AsULID().String()
 }
 
+// UUIDString returns the hex encoded UUID format that looks like `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX`
 func (uulid UULID) UUIDString() string {
-	return uulid.asUUID().String()
+	return uulid.AsUUID().String()
 }
 
+// String returns the default of a UULID, which is the ULID representation.
 func (uulid UULID) String() string {
-	return uulid.asULID().String()
+	return uulid.ULIDString()
 }
 
 func MustParseULID(s string) UULID {
@@ -45,10 +52,16 @@ func FromULID(ulid ulid.ULID) UULID {
 	return UULID(ulid)
 }
 
-// NewTimeOnlyULID returns a purely time based ULID with no random component (all zeroes).
+// NewTimeOnlyUULID returns a purely time based ID with no random component (all zeroes).
 // This allows using it to query for IDs after or before a given time.
-func NewTimeOnlyULID(t time.Time) ulid.ULID {
-	return ulid.MustNew(ulid.Timestamp(t), zeroReader{})
+//
+// The ULID representation looks like `01DW6SF6P70000000000000000`, which allows for
+// storage and querying in any datastore, even if byte arrays are unsupported.
+//
+// The UUID representation looks like `016f0d97-9ac7-0000-0000-000000000000`, which allows for
+// range based queries even if UUID is internally stored as a byte array (common in Postgres, etc).
+func NewTimeOnlyUULID(t time.Time) UULID {
+	return FromULID(ulid.MustNew(ulid.Timestamp(t), zeroReader{}))
 }
 
 func NowUULID() UULID {
