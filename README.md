@@ -13,3 +13,27 @@ A [ULID spec](https://github.com/ulid/spec) has since been developed that provid
 The ULID also has a more efficient 26 character string representation (in Base 32) that is sortable. This is important when using the ID in NoSQL systems as sort keys, or even in regular RDBMS systems where the primar key can now allow chronological queries, which are often the most common type of query for immutable data. 
 
 This package represents a [16]byte array as a type called UULID, and provides convenience methods to seamlessly switch between the two generations and representations. This is especially useful when you want to use a ULID in a data system that natively supports only UUIDs or vice versa. 
+
+## Usage
+
+Generate an identifier using the methods available
+```go
+id := NowUULID()
+idWithTime := NewTimedUULID(someTime)
+idWithContent := NewContentUULID(time.Now(), contentReader)
+```
+
+Once you've created the IDs, you can either get the ULID or the UUID representations based on your needs
+
+```go
+id.UUIDString() // 016f1873-dff7-ed3a-6745-04e60ea72957
+id.ULIDString() // 01DWC77QZQXMX6EH84WR7AEAAQ 
+```
+
+This `UUIDString` is what you'd want to use on a system like PostgreSQL that has native handling for the UUID type. If you're a on a NoSQL system like DynamoDB or Mongo, the `ULIDString` might be a better way to go. 
+
+To switch between the two, you can use the parsing convenience methods:
+```go
+MustParseUUID("016f1873-dff7-ed3a-6745-04e60ea72957").ULIDString() // 01DWC77QZQXMX6EH84WR7AEAAQ
+MustParseULID("01DWC77QZQXMX6EH84WR7AEAAQ").UUIDString() // 016f1873-dff7-ed3a-6745-04e60ea72957 
+```
