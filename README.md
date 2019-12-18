@@ -1,4 +1,4 @@
-UULID
+UULID ![https://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square](https://godoc.org/github.com/sudhirj/uulid.go)
 
 This package is a bridge between the UUID and the ULID specifications for creating unique identifiers. 
 
