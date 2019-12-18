@@ -1,106 +1,13 @@
-# uulid
---
-    import "github.com/sudhirj/uulid.go"
+UULID
 
+This package is a bridge between the UUID and the ULID specifications for creating unique identifiers. 
 
-## Usage
+Both specs specify a large number, 16 bytes / 128 bits long as being the generated identifier. 
 
-#### type UULID
+In the UUID spec, as defined in [RFC4122](https://tools.ietf.org/html/rfc4122), the entire number (all 128 bits) are completely random, and the representation is 36 hexadecimal (base 16) characters encoded in the following format: `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX`. This is very commonly supported spec, and most database systems have native handling for this representation that stores it as an efficient [16]byte array under the covers. Most primary keys index are also B-Tree indexes that allow sorting and range queries, but because of the completely random nature of the identifier these capabilities are mostly wasted. 
 
-```go
-type UULID [16]byte
-```
+A ULID spec has since been developed that provides an alternative to the generation and representation that has benefits for modern applications - namely dedicating the first 48 bits to a millisecond precision unix timestamp, and the remaining 80 bits to randomness. This provides all the randomness (possibly even more) guarantees that the UUID spec provides, while encoding time data into the ID. This is especially useful in identifying data objects that are naturally chronological, like events, inserts, updates, news, or any feed of actions. 
 
-UULID represents a 16 byte, or a 128 bit number, which is exactly the same
-representation as UUIDs and ULIDs. This allows for easy movement between each
-representation.
+The ULID also has a more efficient 26 character string representation (in Base 32) that is sortable. This is important when using the ID in NoSQL systems as sort keys, or even in regular RDBMS systems where the primar key can now allow chronological queries, which are often the most common type of query for immutable data. 
 
-#### func  FromULID
-
-```go
-func FromULID(ulid ulid.ULID) UULID
-```
-
-#### func  FromUUID
-
-```go
-func FromUUID(uuid uuid.UUID) UULID
-```
-
-#### func  MustParseULID
-
-```go
-func MustParseULID(s string) UULID
-```
-
-#### func  MustParseUUID
-
-```go
-func MustParseUUID(s string) UULID
-```
-
-#### func  NewTimeOnlyUULID
-
-```go
-func NewTimeOnlyUULID(t time.Time) UULID
-```
-NewTimeOnlyUULID returns a purely time based ID with no random component (all
-zeroes). This allows using it to query for IDs after or before a given time.
-
-The ULID representation looks like `01DW6SF6P70000000000000000`, which allows
-for storage and querying in any datastore, even if byte arrays are unsupported.
-
-The UUID representation looks like `016f0d97-9ac7-0000-0000-000000000000`, which
-allows for range based queries even if UUID is internally stored as a byte array
-(common in Postgres, etc).
-
-#### func  NewTimedUULID
-
-```go
-func NewTimedUULID(t time.Time) UULID
-```
-
-#### func  NowUULID
-
-```go
-func NowUULID() UULID
-```
-
-#### func (UULID) AsULID
-
-```go
-func (uulid UULID) AsULID() ulid.ULID
-```
-AsULID returns the UULID as a ULID, which will represent it itself as a 26
-character Base32 string, an example being `01ARZ3NDEKTSV4RRFFQ69G5FAV`
-
-#### func (UULID) AsUUID
-
-```go
-func (uulid UULID) AsUUID() uuid.UUID
-```
-AsUUID returns the UULID as a UUID, which will represent it itself in the format
-`XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX`
-
-#### func (UULID) String
-
-```go
-func (uulid UULID) String() string
-```
-String returns the default of a UULID, which is the ULID representation.
-
-#### func (UULID) ULIDString
-
-```go
-func (uulid UULID) ULIDString() string
-```
-ULIDString returns the Base32 ULID representation, which occupies 26 characters,
-like `01ARZ3NDEKTSV4RRFFQ69G5FAV`
-
-#### func (UULID) UUIDString
-
-```go
-func (uulid UULID) UUIDString() string
-```
-UUIDString returns the hex encoded UUID format that looks like
-`XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX`
+This package represents a [16]byte array as a type called UULID, and provides convenience methods to seamlessly switch between the two generations and representations. This is especially useful when you want to use a ULID in a data system that natively supports only UUIDs or vice versa. 
