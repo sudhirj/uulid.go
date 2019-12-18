@@ -37,3 +37,12 @@ To switch between the two, you can use the parsing convenience methods:
 MustParseUUID("016f1873-dff7-ed3a-6745-04e60ea72957").ULIDString() // 01DWC77QZQXMX6EH84WR7AEAAQ
 MustParseULID("01DWC77QZQXMX6EH84WR7AEAAQ").UUIDString() // 016f1873-dff7-ed3a-6745-04e60ea72957 
 ```
+
+To run queries against your data, you can use the time only UULIDs to generate your bounds:
+```go
+queryUULID := NewTimeOnlyUULID(time.Unix(1576481036, 999999999)) 
+queryUULID.ULIDString() // 01DW6SF6P70000000000000000
+queryUULID.UUIDString() // 016f0d97-9ac7-0000-0000-000000000000
+```
+
+These time-only zeroed can be used in `<`, `<=`, `>`, `>=` range queries against your primary key indexes, in same way you might run queries against ISO8601 timestamps.    
