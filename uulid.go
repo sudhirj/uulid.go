@@ -1,9 +1,13 @@
 package uulid
 
 import (
+	"bytes"
 	cryptoRand "crypto/rand"
+	"crypto/sha1"
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
+	"io"
+	"io/ioutil"
 	"time"
 )
 
@@ -62,6 +66,24 @@ func FromULID(ulid ulid.ULID) UULID {
 // range based queries even if UUID is internally stored as a byte array (common in Postgres, etc).
 func NewTimeOnlyUULID(t time.Time) UULID {
 	return FromULID(ulid.MustNew(ulid.Timestamp(t), zeroReader{}))
+}
+
+// NewContentUULID returns a UULID with the given time component and the "randomness" component
+// filled with bytes from the SHA1 hash of the bytes in the given reader. Note that this ID is no
+// longer random - generation of the ID is now completely functional and idempotent. The combination
+// of the given timestamp and content will always generate the same ID.
+//
+// This is especially useful for assigning IDs to immutable pieces of chronological data, where the
+// meaning of the the data is clearly defined by one or more of its attributes.
+//
+// Note that the ULID requires 10 bytes to complete the ID after the timestamp - but because the data
+// is being SHA1 hashed, you do not need to provide 10 bytes in the reader. Any number of bytes will do.
+// Also note that only half the SHA1 digest is being used in the ID (SHA1 gives 20 bytes, of which we use 10),
+// so that needs to be taken into account in determining any collision rates.
+func NewContentUULID(now time.Time, reader io.Reader) UULID {
+	content, _ := ioutil.ReadAll(reader)
+	digest := sha1.Sum(content)
+	return FromULID(ulid.MustNew(ulid.Timestamp(now), bytes.NewReader(digest[:])))
 }
 
 func NowUULID() UULID {
