@@ -24,3 +24,18 @@ func TestContentBasedUULID(t *testing.T) {
 	contentUULID2 := NewContentUULID(time.Unix(1576481036, 999999999), strings.NewReader("the quick brown fox jumps over the lazy dogs"))
 	assert.Equal(t, "01DW6SF6P7SFW8MX4Y3A3T4DNY", contentUULID2.AsULID().String())
 }
+
+func TestSorting(t *testing.T) {
+	now := time.Now()
+	later := now.Add(1 * time.Second)
+	earlier := now.Add(1 * -time.Second)
+	nowUULID := NewTimedUULID(now)
+	laterUULID := NewTimedUULID(later)
+	earlierUULID := NewTimedUULID(earlier)
+
+	assert.Less(t, earlierUULID.UUIDString(), nowUULID.UUIDString())
+	assert.Less(t, nowUULID.UUIDString(), laterUULID.UUIDString())
+
+	assert.Less(t, earlierUULID.ULIDString(), nowUULID.ULIDString())
+	assert.Less(t, nowUULID.ULIDString(), laterUULID.ULIDString())
+}
