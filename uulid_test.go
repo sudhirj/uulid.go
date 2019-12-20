@@ -28,7 +28,7 @@ func TestContentBasedUULID(t *testing.T) {
 func TestSorting(t *testing.T) {
 	now := time.Now()
 	later := now.Add(1 * time.Second)
-	earlier := now.Add(1 * -time.Second)
+	earlier := now.Add(-1 * time.Second)
 	nowUULID := NewTimedUULID(now)
 	laterUULID := NewTimedUULID(later)
 	earlierUULID := NewTimedUULID(earlier)
