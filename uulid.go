@@ -4,11 +4,12 @@ import (
 	"bytes"
 	cryptoRand "crypto/rand"
 	"crypto/sha1"
-	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
 	"io"
 	"io/ioutil"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 )
 
 // UULID represents a 16 byte, or a 128 bit number, which is exactly the same representation as
@@ -46,6 +47,24 @@ func MustParseULID(s string) UULID {
 
 func MustParseUUID(s string) UULID {
 	return FromUUID(uuid.MustParse(s))
+}
+
+// ParseULID parses ULID, returning an error in case of failure.
+func ParseULID(s string) (UULID, error) {
+	ulid, err := ulid.Parse(s)
+	if err != nil {
+		return UULID{}, err
+	}
+	return FromULID(ulid), nil
+}
+
+// ParseUUID parses UUID, returning an error in case of failure.
+func ParseUUID(s string) (UULID, error) {
+	uuid, err := uuid.Parse(s)
+	if err != nil {
+		return UULID{}, err
+	}
+	return FromUUID(uuid), nil
 }
 
 func FromUUID(uuid uuid.UUID) UULID {
