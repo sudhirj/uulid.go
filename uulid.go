@@ -83,7 +83,17 @@ func FromULID(ulid ulid.ULID) UULID {
 //
 // The UUID representation looks like `016f0d97-9ac7-0000-0000-000000000000`, which allows for
 // range based queries even if UUID is internally stored as a byte array (common in Postgres, etc).
-func NewTimeOnlyUULID(t time.Time) UULID {
+func NewTimeOnlyUULID(t time.Time) (UULID, error) {
+	ulid, err := ulid.New(ulid.Timestamp(t), zeroReader{})
+	if err != nil {
+		return UULID{}, err
+	}
+	return FromULID(ulid), nil
+}
+
+// MustNewTimeOnlyUULID is equivalent to NewTimeOnlyUULID but panics on failure
+// instead of returning an error.
+func MustNewTimeOnlyUULID(t time.Time) UULID {
 	return FromULID(ulid.MustNew(ulid.Timestamp(t), zeroReader{}))
 }
 
@@ -99,7 +109,19 @@ func NewTimeOnlyUULID(t time.Time) UULID {
 // is being SHA1 hashed, you do not need to provide 10 bytes in the reader. Any number of bytes will do.
 // Also note that only half the SHA1 digest is being used in the ID (SHA1 gives 20 bytes, of which we use 10),
 // so that needs to be taken into account in determining any collision rates.
-func NewContentUULID(now time.Time, reader io.Reader) UULID {
+func NewContentUULID(now time.Time, reader io.Reader) (UULID, error) {
+	content, _ := ioutil.ReadAll(reader)
+	digest := sha1.Sum(content)
+	ulid, err := ulid.New(ulid.Timestamp(now), bytes.NewReader(digest[:]))
+	if err != nil {
+		return UULID{}, err
+	}
+	return FromULID(ulid), nil
+}
+
+// MustNewContentUULID is equivalent to NewContentUULID but panics on failure
+// instead of returning an error.
+func MustNewContentUULID(now time.Time, reader io.Reader) UULID {
 	content, _ := ioutil.ReadAll(reader)
 	digest := sha1.Sum(content)
 	return FromULID(ulid.MustNew(ulid.Timestamp(now), bytes.NewReader(digest[:])))
@@ -109,7 +131,15 @@ func NowUULID() UULID {
 	return UULID(ulid.MustNew(ulid.Now(), cryptoRand.Reader))
 }
 
-func NewTimedUULID(t time.Time) UULID {
+func NewTimedUULID(t time.Time) (UULID, error) {
+	ulid, err := ulid.New(ulid.Timestamp(t), cryptoRand.Reader)
+	if err != nil {
+		return UULID{}, err
+	}
+	return UULID(ulid), nil
+}
+
+func MustNewTimedUULID(t time.Time) UULID {
 	return UULID(ulid.MustNew(ulid.Timestamp(t), cryptoRand.Reader))
 }
 
