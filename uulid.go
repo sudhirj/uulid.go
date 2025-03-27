@@ -4,15 +4,15 @@ import (
 	"bytes"
 	cryptoRand "crypto/rand"
 	"crypto/sha1"
+	"hash"
 	"io"
-	"io/ioutil"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
 )
 
-// UULID represents a 16 byte, or a 128 bit number, which is exactly the same representation as
+// UULID represents a 16 byte, or a 128-bit number, which is exactly the same representation as
 // UUIDs and ULIDs. This allows for easy movement between each representation.
 type UULID [16]byte
 
@@ -93,16 +93,20 @@ func NewTimeOnlyUULID(t time.Time) UULID {
 // of the given timestamp and content will always generate the same ID.
 //
 // This is especially useful for assigning IDs to immutable pieces of chronological data, where the
-// meaning of the the data is clearly defined by one or more of its attributes.
+// meaning of the data is clearly defined by one or more of its attributes.
 //
 // Note that the ULID requires 10 bytes to complete the ID after the timestamp - but because the data
 // is being SHA1 hashed, you do not need to provide 10 bytes in the reader. Any number of bytes will do.
 // Also note that only half the SHA1 digest is being used in the ID (SHA1 gives 20 bytes, of which we use 10),
 // so that needs to be taken into account in determining any collision rates.
-func NewContentUULID(now time.Time, reader io.Reader) UULID {
-	content, _ := ioutil.ReadAll(reader)
-	digest := sha1.Sum(content)
-	return FromULID(ulid.MustNew(ulid.Timestamp(now), bytes.NewReader(digest[:])))
+func NewContentUULID(timestamp time.Time, reader io.Reader) UULID {
+	return NewContentHashedUULID(timestamp, reader, sha1.New())
+}
+
+func NewContentHashedUULID(timestamp time.Time, reader io.Reader, hasher hash.Hash) UULID {
+	_, _ = io.Copy(hasher, reader)
+	digest := hasher.Sum(nil)
+	return FromULID(ulid.MustNew(ulid.Timestamp(timestamp), bytes.NewReader(digest[:])))
 }
 
 func NowUULID() UULID {
